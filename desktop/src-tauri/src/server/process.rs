@@ -395,7 +395,7 @@ impl ServerProcess {
         for attempt in 0..3 {
             if attempt > 0 {
                 if let Some(report) = self.death_report("vibe-server process died during model loading").await {
-                    bail!("{report}");
+                    bail!("{report} (last request error: {last_error:?})");
                 }
                 tracing::debug!("retrying load_model (attempt {})", attempt + 1);
                 tokio::time::sleep(std::time::Duration::from_millis(500 * (1 << attempt))).await;
@@ -416,7 +416,7 @@ impl ServerProcess {
         }
 
         if let Some(report) = self.death_report("vibe-server process died during model loading").await {
-            bail!("{report}");
+            bail!("{report} (last request error: {last_error:?})");
         }
         let error = Err(last_error.unwrap()).context("failed to send load_model request to server after 3 attempts");
         let stderr = self.recent_stderr();
